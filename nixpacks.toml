@@ -1,0 +1,26 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["python312", "gcc", "pkg-config"]
+
+[build.nixpacksPlan.phases.install]
+cmds = [
+  "python -m venv --copies /opt/venv",
+  ". /opt/venv/bin/activate",
+  "pip install -r requirements.txt"
+]
+
+[build.nixpacksPlan.phases.build]
+cmds = [
+  ". /opt/venv/bin/activate",
+  "playwright install --with-deps chromium"
+]
+
+[deploy]
+startCommand = "python app.py"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[env]
+PLAYWRIGHT_BROWSERS_PATH = "/opt/playwright"
