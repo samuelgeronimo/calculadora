@@ -630,9 +630,6 @@ class ProductExtractor:
             await self.playwright.stop()
 
 
-# Instância global
-extractor = None
-
 @app.route('/')
 def index():
     return render_template('extrator.html')
@@ -654,7 +651,11 @@ def buscar():
         # Extrair ofertas
         async def extrair():
             extractor = ProductExtractor()
-            return await extractor.extrair_ofertas(url)
+            await extractor.iniciar()
+            try:
+                return await extractor.extrair_ofertas(url)
+            finally:
+                await extractor.fechar()
         
         resultado = run_async(extrair())
         
@@ -722,7 +723,6 @@ def detalhes():
 @app.route('/api/extrair', methods=['POST'])
 def api_extrair():
     """Endpoint para extrair informações de um produto"""
-    global extractor
     
     data = request.json
     url = data.get('url', '')
@@ -734,11 +734,6 @@ def api_extrair():
         return jsonify({"success": False, "error": "URL inválida. Deve começar com http:// ou https://"})
     
     try:
-        # Inicializar extractor se necessário
-        if extractor is None:
-            extractor = ProductExtractor()
-            run_async(extractor.iniciar())
-        
         # Detectar se é página de comprasparaguai
         if 'comprasparaguai.com.br' in url:
             # Verificar se é página de ofertas (sem __) ou detalhes (com __)
@@ -751,7 +746,15 @@ def api_extrair():
                 })
             else:
                 # É página de ofertas - extrair lista
-                resultado = run_async(extractor.extrair_ofertas(url))
+                async def extrair():
+                    extractor = ProductExtractor()
+                    await extractor.iniciar()
+                    try:
+                        return await extractor.extrair_ofertas(url)
+                    finally:
+                        await extractor.fechar()
+                
+                resultado = run_async(extrair())
                 
                 if resultado:
                     return jsonify({
@@ -766,7 +769,15 @@ def api_extrair():
                     })
         else:
             # Extrair produto único
-            produto = run_async(extractor.extrair_produto(url))
+            async def extrair():
+                extractor = ProductExtractor()
+                await extractor.iniciar()
+                try:
+                    return await extractor.extrair_produto(url)
+                finally:
+                    await extractor.fechar()
+            
+            produto = run_async(extrair())
             
             if produto:
                 return jsonify({
@@ -792,7 +803,6 @@ def api_extrair():
 @app.route('/api/detalhes', methods=['POST'])
 def api_detalhes():
     """Endpoint para extrair detalhes completos de um produto"""
-    global extractor
     
     data = request.json
     detail_id = data.get('detail_id', '')
@@ -816,13 +826,16 @@ def api_detalhes():
         return jsonify({"success": False, "error": "URL inválida"})
     
     try:
-        # Inicializar extractor se necessário
-        if extractor is None:
-            extractor = ProductExtractor()
-            run_async(extractor.iniciar())
-        
         # Extrair detalhes do produto
-        detalhes = run_async(extractor.extrair_detalhes_produto(url))
+        async def extrair():
+            extractor = ProductExtractor()
+            await extractor.iniciar()
+            try:
+                return await extractor.extrair_detalhes_produto(url)
+            finally:
+                await extractor.fechar()
+        
+        detalhes = run_async(extrair())
         
         if detalhes:
             # Adicionar logo da loja se veio do armazenamento temporário
