@@ -63,8 +63,27 @@ class ProductExtractor:
         """Inicializar o Playwright e navegador"""
         print("🚀 Iniciando Playwright...")
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=True)
-        self.page = await self.browser.new_page(viewport={'width': 1920, 'height': 1080})
+        
+        # Lançar navegador com args para Railway
+        self.browser = await self.playwright.chromium.launch(
+            headless=True,
+            args=[
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-blink-features=AutomationControlled'
+            ]
+        )
+        
+        # Criar página com user-agent realista
+        self.page = await self.browser.new_page(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        )
+        
+        # Configurar timeout padrão maior
+        self.page.set_default_timeout(60000)  # 60 segundos
+        
         print("✅ Navegador iniciado")
     
     async def extrair_texto_seletor(self, selectors):
@@ -261,14 +280,15 @@ class ProductExtractor:
         """Extrair todas as ofertas de uma página de comparação"""
         try:
             print(f"🔍 Acessando página de ofertas: {url}")
-            await self.page.goto(url, wait_until="domcontentloaded", timeout=20000)
+            await self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
             
-            # Aguardar ofertas carregarem (reduzido de 8s para 3s)
-            await asyncio.sleep(3)
+            print("⏰ Aguardando JavaScript carregar...")
+            await asyncio.sleep(8)
             
-            # Scroll rápido para carregar lazy loading
+            # Scroll para carregar lazy loading
+            print("📜 Fazendo scroll...")
             await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await asyncio.sleep(1)  # Reduzido de 2s para 1s
+            await asyncio.sleep(3)
             
             # Extrair título do produto
             titulo = await self.extrair_texto_seletor([
