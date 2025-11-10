@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ofertas - Compras Paraguai</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container-ofertas">
+        <header>
+            <h1>🛒 Ofertas Encontradas</h1>
+            <a href="/" class="btn-voltar">← Nova Busca</a>
+        </header>
+
+        <div class="filtros">
+            <label>Ordenar por:</label>
+            <select id="ordenacao" onchange="ordenarOfertas()">
+                <option value="preco">Menor Preço</option>
+                <option value="loja">Loja (A-Z)</option>
+                <option value="frete">Menor Frete</option>
+            </select>
+        </div>
+
+        <div id="ofertas-container" class="ofertas-grid">
+            <!-- As ofertas serão inseridas aqui via JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        let ofertasData = [];
+
+        // Carregar ofertas do sessionStorage
+        function carregarOfertas() {
+            const ofertas = sessionStorage.getItem('ofertas');
+            if (ofertas) {
+                ofertasData = JSON.parse(ofertas);
+                mostrarOfertas(ofertasData);
+            } else {
+                document.getElementById('ofertas-container').innerHTML = 
+                    '<p style="text-align: center; color: #666;">Nenhuma oferta encontrada. <a href="/">Fazer nova busca</a></p>';
+            }
+        }
+
+        function mostrarOfertas(ofertas) {
+            const container = document.getElementById('ofertas-container');
+            
+            if (!ofertas || ofertas.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma oferta encontrada.</p>';
+                return;
+            }
+
+            container.innerHTML = ofertas.map(oferta => `
+                <div class="oferta-card" onclick="verDetalhes('${oferta.url}', '${oferta.logo_loja || ''}')">
+                    <div class="oferta-imagem">
+                        <img src="${oferta.thumbnail || '/static/images/sem-imagem.png'}" alt="${oferta.titulo}" loading="lazy">
+                    </div>
+                    <div class="oferta-info">
+                        <h3 class="oferta-titulo">${oferta.titulo}</h3>
+                        <div class="oferta-loja">
+                            ${oferta.logo_loja ? `<img src="${oferta.logo_loja}" alt="Logo" class="logo-mini">` : ''}
+                            <span>${oferta.loja}</span>
+                        </div>
+                        <div class="oferta-precos">
+                            <div class="preco-principal">${oferta.preco}</div>
+                            ${oferta.frete ? `<div class="preco-frete">Frete: ${oferta.frete}</div>` : ''}
+                        </div>
+                        <button class="btn-detalhes">Ver Detalhes →</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function ordenarOfertas() {
+            const tipo = document.getElementById('ordenacao').value;
+            let ordenadas = [...ofertasData];
+
+            switch(tipo) {
+                case 'preco':
+                    ordenadas.sort((a, b) => parsePreco(a.preco) - parsePreco(b.preco));
+                    break;
+                case 'loja':
+                    ordenadas.sort((a, b) => a.loja.localeCompare(b.loja));
+                    break;
+                case 'frete':
+                    ordenadas.sort((a, b) => parsePreco(a.frete || '9999') - parsePreco(b.frete || '9999'));
+                    break;
+            }
+
+            mostrarOfertas(ordenadas);
+        }
+
+        function parsePreco(preco) {
+            if (!preco) return 999999;
+            const numero = preco.replace(/[^\d,]/g, '').replace(',', '.');
+            return parseFloat(numero) || 999999;
+        }
+
+        function verDetalhes(url, logo) {
+            // Salvar dados no sessionStorage
+            fetch('/detalhes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url, logo_loja: logo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/detalhes';
+                }
+            });
+        }
+
+        // Carregar ao iniciar
+        carregarOfertas();
+    </script>
+</body>
+</html>
