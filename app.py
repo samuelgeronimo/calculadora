@@ -635,7 +635,7 @@ extractor = None
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('extrator.html')
 
 @app.route('/buscar', methods=['POST'])
 def buscar():
