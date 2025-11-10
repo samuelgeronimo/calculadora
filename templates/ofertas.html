@@ -30,15 +30,23 @@
     <script>
         let ofertasData = [];
 
-        // Carregar ofertas do sessionStorage
-        function carregarOfertas() {
-            const ofertas = sessionStorage.getItem('ofertas');
-            if (ofertas) {
-                ofertasData = JSON.parse(ofertas);
-                mostrarOfertas(ofertasData);
-            } else {
+        // Carregar ofertas da API
+        async function carregarOfertas() {
+            try {
+                const response = await fetch('/api/ofertas');
+                const data = await response.json();
+                
+                if (data.ofertas && data.ofertas.length > 0) {
+                    ofertasData = data.ofertas;
+                    mostrarOfertas(ofertasData);
+                } else {
+                    document.getElementById('ofertas-container').innerHTML = 
+                        '<p style="text-align: center; color: #666;">Nenhuma oferta encontrada. <a href="/">Fazer nova busca</a></p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar ofertas:', error);
                 document.getElementById('ofertas-container').innerHTML = 
-                    '<p style="text-align: center; color: #666;">Nenhuma oferta encontrada. <a href="/">Fazer nova busca</a></p>';
+                    '<p style="text-align: center; color: #666;">Erro ao carregar ofertas. <a href="/">Fazer nova busca</a></p>';
             }
         }
 

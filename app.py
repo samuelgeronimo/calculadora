@@ -635,6 +635,64 @@ extractor = None
 
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/buscar', methods=['POST'])
+def buscar():
+    """Rota para buscar produtos"""
+    try:
+        data = request.get_json()
+        produto = data.get('produto', '').strip()
+        
+        if not produto:
+            return jsonify({'success': False, 'error': 'Produto não informado'})
+        
+        # Criar URL de busca do Compras Paraguai
+        produto_encoded = produto.replace(' ', '-').lower()
+        url = f"https://www.comprasparaguai.com.br/{produto_encoded}"
+        
+        # Extrair ofertas
+        async def extrair():
+            extractor = ProductExtractor()
+            return await extractor.extrair_ofertas(url)
+        
+        resultado = run_async(extrair())
+        
+        if resultado and 'ofertas' in resultado:
+            # Salvar na sessão
+            session['ofertas'] = resultado['ofertas']
+            session['produto'] = produto
+            
+            return jsonify({
+                'success': True, 
+                'total': len(resultado['ofertas'])
+            })
+        else:
+            return jsonify({
+                'success': False, 
+                'error': 'Nenhuma oferta encontrada'
+            })
+            
+    except Exception as e:
+        print(f"Erro ao buscar: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/ofertas')
+def ofertas():
+    """Página de ofertas"""
+    return render_template('ofertas.html')
+
+@app.route('/api/ofertas', methods=['GET'])
+def api_ofertas():
+    """Retorna ofertas da sessão"""
+    ofertas = session.get('ofertas', [])
+    return jsonify({'ofertas': ofertas})
+
+@app.route('/extrator')
+def extrator():
+    """Página antiga de extrator direto"""
     return render_template('extrator.html')
 
 @app.route('/detalhes', methods=['GET', 'POST'])
