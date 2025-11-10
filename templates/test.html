@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Servidor Flask</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .card {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #4CAF50; }
+        .status { 
+            padding: 15px;
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            margin: 20px 0;
+        }
+        a {
+            display: inline-block;
+            margin: 10px 10px 10px 0;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>✅ Servidor Flask Funcionando!</h1>
+        
+        <div class="status">
+            <h3>Status do Servidor:</h3>
+            <p>✓ Flask está rodando corretamente</p>
+            <p>✓ Arquivos HTML sendo servidos</p>
+            <p>✓ Porta 5000 ativa</p>
+        </div>
+
+        <h3>Navegação:</h3>
+        <a href="/">📱 Ir para Interface Principal</a>
+        <a href="/api/buscar" onclick="alert('Use POST com JSON'); return false;">🔍 API Buscar</a>
+        
+        <h3>Informações:</h3>
+        <p><strong>URL Atual:</strong> <span id="url"></span></p>
+        <p><strong>Timestamp:</strong> <span id="time"></span></p>
+        
+        <h3>Próximos Passos:</h3>
+        <ol>
+            <li>Clique em "Ir para Interface Principal" acima</li>
+            <li>Se a tela ficar branca, pressione F12 e veja o Console</li>
+            <li>Verifique se há erros de JavaScript ou CSS</li>
+        </ol>
+    </div>
+
+    <script>
+        document.getElementById('url').textContent = window.location.href;
+        document.getElementById('time').textContent = new Date().toLocaleString('pt-BR');
+    </script>
+</body>
+</html>

@@ -4,17 +4,9 @@ __pycache__/
 .venv/
 venv/
 *.png
-*.html
-*.json
-!railway.json
-!package.json
-!vercel.json
 debug_*
 test_*
 analise_*
 demo_*
-*.md
-!README.md
-!DEPLOY.md
 .git/
 .vscode/

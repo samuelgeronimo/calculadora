@@ -1,0 +1,64 @@
+{
+  "filtros_encontrados": [
+    {
+      "selector": "[class*=\"filter\"]",
+      "texto": "\n            \n                \n            \n        ",
+      "html_preview": "\n            <div class=\"btn-close-filter\">\n                <i class=\"icon icon-close\"></i>\n            </div>\n        "
+    },
+    {
+      "selector": "[class*=\"filter\"]",
+      "texto": "Filtros\nLojas\nAtacado Connect\nCellshop\nStar Games\nShopping China\nNissei\nMobile Zone\nNew Zone\nAtlantico Shop\nSuper Games\nAtacado Collections\nMega Eletro\nRaio Laser\nMega Eletrônicos\nVisãovip\nToku Importados\nRoma Shopping\nIntershop Importados\nTopdek Informática\nVictoria Store\nPrime Shop\nMadrid Center\nAlborada\nFlytec Computers\nCasa Americana\nMacedonia\nDr Cell Atacado\nTecnoTienda\nBest Shop Paraguai\nFlash Importados\nElegancia Company\nAtacado USA\nAbudi Cell\nAtacado Brasil\nTellecon Cell\nTecombras\nPoint ",
+      "html_preview": "\n                <!-- Begin: Categorias -->\n\n                \n                <!-- End: Categorias -->\n\n                \n\n\n\n\n\n<div class=\"row box-categ\">\n\n    <!-- Begin: Filtros selecionados -->\n    <div class=\"box-subtitle blue margin-box-filter-categ\">\n        <span>Filtros</span>\n        <hr>\n    </div>\n\n    \n    <!-- End: Filtros selecionados -->\n\n    <!-- Filtrar nos resultados -->\n    \n    <!-- End: Filtrar nos resultados -->\n\n\n    <!-- Filtro Loja -->\n    \n        <div class=\"margin-box-filter-categ-title\">\n            <div class=\"box-subtitle grey\">\n                <span>Lojas</span>\n                <hr>\n            </div>\n            <div class=\"container\">\n                <div class=\"row\">\n                    <ul class=\"categ-ul-list\">\n                        \n                            <li onclick=\"removeFiltro('/busca/?q=ps5&amp;loja=atacado-connect')\">\n                                <input type=\"checkbox\" onclick=\"removeFiltro('/busca/?q=ps5&amp;loja=atacado-connect')\" "
+    },
+    {
+      "selector": "[class*=\"filter\"]",
+      "texto": "Lojas\nAtacado Connect\nCellshop\nStar Games\nShopping China\nNissei\nMobile Zone\nNew Zone\nAtlantico Shop\nSuper Games\nAtacado Collections\nMega Eletro\nRaio Laser\nMega Eletrônicos\nVisãovip\nToku Importados\nRoma Shopping\nIntershop Importados\nTopdek Informática\nVictoria Store\nPrime Shop\nMadrid Center\nAlborada\nFlytec Computers\nCasa Americana\nMacedonia\nDr Cell Atacado\nTecnoTienda\nBest Shop Paraguai\nFlash Importados\nElegancia Company\nAtacado USA\nAbudi Cell\nAtacado Brasil\nTellecon Cell\nTecombras\nPoint Informát",
+      "html_preview": "\n            <div class=\"box-subtitle grey\">\n                <span>Lojas</span>\n                <hr>\n            </div>\n            <div class=\"container\">\n                <div class=\"row\">\n                    <ul class=\"categ-ul-list\">\n                        \n                            <li onclick=\"removeFiltro('/busca/?q=ps5&amp;loja=atacado-connect')\">\n                                <input type=\"checkbox\" onclick=\"removeFiltro('/busca/?q=ps5&amp;loja=atacado-connect')\" id=\"filtro-Atacado Connect\" class=\"checkbox-before-label\" style=\"\">\n                                <label for=\"filtro-Atacado Connect\" class=\"label-after-checkbox label-span-value\">\n                                    Atacado Connect\n                                </label>\n                            </li>\n                        \n                            <li onclick=\"removeFiltro('/busca/?q=ps5&amp;loja=cellshop')\">\n                                <input type=\"checkbox\" onclick=\"removeFiltro('/busca/?q=ps5&am"
+    },
+    {
+      "selector": "[class*=\"filter\"]",
+      "texto": "Marcas\nSony\nBanana Boat\nNacon\nPrada\nRazer\nSundown\nLoreal\nSandisk\nMagnavox\nNeutrogena\nSteelseries\nLogitech\nKingston\nRedragon\nJBL\nViewsonic\nThrustmaster\nHydro Flask\nHawaiian Tropic\nMtek\nWestern Digital\nBlulory\nJoog\nSeagate\nPatriot\nEucerin\nPosonic\nApple\nVoyager\nAustralian Gold\nClinians\nNivea",
+      "html_preview": "\n            <div class=\"box-subtitle grey\">\n                <span>Marcas</span>\n                <hr>\n            </div>\n            <div class=\"container\">\n                <div class=\"row\">\n                    <ul class=\"categ-ul-list\">\n                        \n                            <li onclick=\"removeFiltro('/busca--sony/?q=ps5')\">\n                                <input type=\"checkbox\" onclick=\"removeFiltro('/busca--sony/?q=ps5')\" id=\"filtro-Sony\" class=\"checkbox-before-label\" style=\"\">\n                                <label for=\"filtro-Sony\" class=\"label-after-checkbox label-span-value\">\n                                    Sony\n                                </label>\n                            </li>\n                        \n                            <li onclick=\"removeFiltro('/busca--banana-boat/?q=ps5')\">\n                                <input type=\"checkbox\" onclick=\"removeFiltro('/busca--banana-boat/?q=ps5')\" id=\"filtro-Banana Boat\" class=\"checkbox-before-label\" style=\""
+    },
+    {
+      "selector": "[class*=\"filter\"]",
+      "texto": "\n                Filtrar \n                \n            ",
+      "html_preview": "\n                Filtrar \n                <i class=\"icon icon-filtro_mobile\"></i>\n            "
+    }
+  ],
+  "html_filtros": "",
+  "checkboxes": [
+    "Atacado Connect",
+    "Cellshop",
+    "Star Games",
+    "Shopping China",
+    "Nissei",
+    "Mobile Zone",
+    "New Zone",
+    "Atlantico Shop",
+    "Super Games",
+    "Atacado Collections",
+    "Mega Eletro",
+    "Raio Laser",
+    "Mega Eletrônicos",
+    "Visãovip",
+    "Toku Importados",
+    "Roma Shopping",
+    "Intershop Importados",
+    "Topdek Informática",
+    "Victoria Store",
+    "Prime Shop"
+  ],
+  "selects": [
+    {
+      "opcoes": [
+        "Relevância",
+        "Menor Preço",
+        "Maior Preço",
+        "Produto (A-Z)",
+        "Produto (Z-A)",
+        "Mais Novos"
+      ]
+    }
+  ]
+}
