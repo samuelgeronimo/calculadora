@@ -1,501 +1,269 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Extrator Inteligente de Produtos</title>
+    <title>Busca de Produtos</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            color: #1a202c;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
+        body {
+            background-color: #f0f2f5;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 24px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: -30px auto 40px;
             padding: 0 20px;
         }
-        
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-        
-        .header p {
-            opacity: 0.95;
-            font-size: 15px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
-        
+
         .search-box {
             background: white;
+            padding: 30px;
             border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             margin-bottom: 30px;
         }
-        
+
         .search-label {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 12px;
             display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #4b5563;
+            font-size: 1.1rem;
         }
-        
-        .input-group { display: flex; gap: 12px; }
-        
-        input {
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        input[type="text"] {
             flex: 1;
             padding: 16px 20px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #e5e7eb;
             border-radius: 12px;
-            font-size: 15px;
-            background: #f7fafc;
+            font-size: 16px;
             transition: all 0.3s;
-        }
-        
-        input:focus {
             outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
         button {
-            padding: 16px 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border: none;
+            padding: 16px 32px;
             border-radius: 12px;
-            font-size: 15px;
             font-weight: 600;
+            font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
             transition: all 0.3s;
         }
-        
+
         button:hover {
+            background: #5a67d8;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
-        
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .message {
-            padding: 16px 20px;
-            border-radius: 12px;
             margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
             display: none;
+            text-align: center;
             font-weight: 500;
         }
-        
-        .message.success {
-            background: #ecfdf5;
-            color: #047857;
-            border: 2px solid #10b981;
-        }
-        
+
         .message.error {
-            background: #fef2f2;
+            background-color: #fee2e2;
             color: #991b1b;
-            border: 2px solid #ef4444;
+            border: 1px solid #fecaca;
         }
-        
+
+        .message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
         .loading {
-            text-align: center;
-            padding: 60px 20px;
             display: none;
+            text-align: center;
+            padding: 40px;
         }
-        
+
         .spinner {
-            border: 4px solid #e2e8f0;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e5e7eb;
             border-top: 4px solid #667eea;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 0.8s linear infinite;
+            animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-        
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
-        .produto { display: none; }
-        
+
+        .produto {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .produto-card {
             background: white;
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
-        
+
         .produto-header {
-            background: linear-gradient(to bottom, #f8fafc, white);
-            padding: 40px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 30px;
+            border-bottom: 1px solid #f3f4f6;
         }
-        
-        .produto-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 30px;
-        }
-        
-        .produto-info-left { flex: 1; }
-        
-        .produto-marca {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
+
         .produto-titulo {
-            font-size: 32px;
-            color: #1a202c;
+            font-size: 28px;
+            color: #111827;
             line-height: 1.3;
-            font-weight: 700;
+            margin-bottom: 10px;
         }
-        
-        .produto-preco-box {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 24px 32px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
-            min-width: 220px;
+
+        .produto-content {
+            padding: 30px;
         }
-        
-        .preco-label {
-            font-size: 13px;
-            opacity: 0.9;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .produto-preco {
-            font-size: 42px;
-            font-weight: 800;
-            line-height: 1;
-            margin-bottom: 12px;
-        }
-        
-        .produto-preco::before {
-            content: 'U$ ';
-            font-size: 24px;
-            font-weight: 600;
-            opacity: 0.9;
-        }
-        
-        .btn-ver-produto {
-            display: inline-block;
-            background: white;
-            color: #059669;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 700;
-            text-decoration: none;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s;
-        }
-        
-        .btn-ver-produto:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .produto-fotos-section {
-            padding: 40px;
-            background: #fafbfc;
-        }
-        
-        .foto-principal {
-            margin-bottom: 24px;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .foto-principal img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        .fotos-galeria {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 16px;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .foto-item {
-            aspect-ratio: 1;
-            overflow: hidden;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            cursor: pointer;
-            background: white;
-            transition: all 0.3s;
-        }
-        
-        .foto-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            border-color: #667eea;
-        }
-        
-        .foto-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .produto-content { padding: 40px; }
-        
-        .content-section { margin-bottom: 40px; }
-        
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 2px;
-        }
-        
-        .produto-descricao {
-            color: #4a5568;
-            line-height: 1.8;
-            font-size: 15px;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .detalhes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 16px;
-        }
-        
-        .detalhe-item {
-            background: #f8fafc;
-            padding: 16px 20px;
-            border-radius: 12px;
-            border-left: 3px solid #667eea;
-            transition: all 0.3s;
-        }
-        
-        .detalhe-item:hover {
-            background: #edf2f7;
-            transform: translateX(4px);
-        }
-        
-        .detalhe-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #667eea;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-        
-        .detalhe-valor {
-            font-size: 15px;
-            color: #2d3748;
-            font-weight: 500;
-        }
-        
-        .produto-link-section {
-            background: linear-gradient(135deg, #f8fafc, #edf2f7);
-            padding: 30px 40px;
-            border-top: 2px solid #e2e8f0;
-            text-align: center;
-        }
-        
-        .produto-url-label {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-        
-        .produto-url {
-            display: inline-block;
-            color: #667eea;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 12px 24px;
-            background: white;
-            border-radius: 10px;
-            border: 2px solid #e2e8f0;
-            max-width: 600px;
-            word-break: break-all;
-            transition: all 0.3s;
-        }
-        
-        .produto-url:hover {
-            border-color: #667eea;
-            background: #f8fafc;
-            transform: translateY(-2px);
-        }
-        
-        /* Estilos para lista de ofertas */
+
         .ofertas-lista {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
-        
+
         .oferta-card {
+            display: flex;
+            align-items: center;
             background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 24px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            transition: all 0.3s;
-        }
-        
-        .oferta-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .oferta-thumb {
-            width: 150px;
-            height: 150px;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s;
+            gap: 20px;
+        }
+
+        .oferta-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: #667eea;
+        }
+
+        .oferta-thumb {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            border-radius: 8px;
             overflow: hidden;
-            background: #f8fafc;
-            flex-shrink: 0;
+            border: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #fff;
         }
-        
+
         .oferta-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
-        
-        .oferta-numero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 700;
-            font-size: 18px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        
+
         .oferta-info {
             flex: 1;
         }
-        
+
         .oferta-produto {
             font-size: 18px;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
             line-height: 1.4;
         }
-        
-        .oferta-produto a {
-            color: #1a202c;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .oferta-produto a:hover {
-            color: #667eea;
-        }
-        
-        .oferta-loja-nome {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        
-        .oferta-loja {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 8px;
-        }
-        
+
         .oferta-preco {
             font-size: 24px;
             font-weight: 800;
             color: #10b981;
         }
-        
+
         .oferta-loja-logo {
             width: 120px;
-            height: 120px;
+            height: 60px;
             background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
         }
-        
+
         .oferta-loja-logo img {
             max-width: 100%;
             max-height: 100%;
@@ -519,175 +287,79 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-ordenar:active {
-            transform: translateY(0);
-        }
-        
-        .btn-ver-oferta {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 12px 28px;
+        .sugestoes-container {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
             border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .sugestoes-title {
+            font-size: 18px;
             font-weight: 700;
-            text-decoration: none;
-            font-size: 15px;
-            white-space: nowrap;
-            transition: all 0.3s;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
         }
-        
-        .btn-ver-oferta:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+
+        .sugestoes-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        
-        @media (max-width: 768px) {
-            .produto-top { flex-direction: column; }
-            .produto-preco-box { width: 100%; }
-            .produto-titulo { font-size: 24px; }
-            .detalhes-grid { grid-template-columns: 1fr; }
-            .oferta-card {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .oferta-thumb {
-                width: 120px;
-                height: 120px;
-            }
-            .oferta-produto {
-                font-size: 16px;
-            }
-            .oferta-info {
-                text-align: center;
-                width: 100%;
-                order: 2;
-            }
-            .oferta-loja-logo {
-                order: 3;
-                margin-top: 12px;
-            }
+
+        .sugestao-tag {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 20px;
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .sugestao-tag:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
     </style>
 </head>
+
 <body>
     <div class="header">
-        <div class="header-content">
-            <h1>🔍 Extrator Inteligente de Produtos</h1>
-            <p>Análise completa de qualquer produto em segundos</p>
-        </div>
+        <h1>🔍 Busca Inteligente de Produtos</h1>
+        <p>Encontre as melhores ofertas em segundos</p>
     </div>
-
     <div class="container">
         <div class="search-box">
-            <label class="search-label">Cole o link do produto para análise completa</label>
+            <label class="search-label">Digite o que você procura (ex: iphone, ps5, perfume)</label>
             <div class="input-group">
-                <input type="text" id="urlInput" placeholder="https://exemplo.com/produto/12345" 
-                       value="https://nissei.com/br/catalog/product/view/id/1642537">
-                <button id="btnExtrair" onclick="extrairProduto()">Analisar Produto</button>
+                <input type="text" id="urlInput" placeholder="Ex: iphone 15, playstation 5, perfume importado...">
+                <button id="btnExtrair" onclick="extrairProduto()">Buscar Ofertas</button>
             </div>
             <div id="message" class="message"></div>
         </div>
-
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>Analisando produto e extraindo informações...</p>
+            <p>Buscando ofertas...</p>
         </div>
-
-        <div id="produto" class="produto">
-            <div class="produto-card">
-                <div class="produto-header">
-                    <div class="produto-top">
-                        <div class="produto-info-left">
-                            <span id="produtoMarca" class="produto-marca" style="display: none;"></span>
-                            <h2 id="produtoTitulo" class="produto-titulo"></h2>
-                        </div>
-                        <div class="produto-preco-box">
-                            <div class="preco-label">Preço</div>
-                            <div id="produtoPreco" class="produto-preco"></div>
-                            <a id="btnVerProduto" href="#" target="_blank" class="btn-ver-produto">Ver Produto</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="produto-fotos-section">
-                    <div id="produtoFotos"></div>
-                </div>
-
-                <div class="produto-content">
-                    <div class="content-section">
-                        <h3 class="section-title">Descrição do Produto</h3>
-                        <div id="produtoDescricao" class="produto-descricao"></div>
-                    </div>
-
-                    <div class="content-section" id="detalhesSection" style="display: none;">
-                        <h3 class="section-title">Especificações Técnicas</h3>
-                        <div id="produtoDetalhes" class="detalhes-grid"></div>
-                    </div>
-                </div>
-
-                <div class="produto-link-section">
-                    <div class="produto-url-label">🔗 Link do Produto Original</div>
-                    <a id="produtoUrl" href="#" target="_blank" class="produto-url"></a>
-                </div>
-            </div>
-        </div>
+        <div id="produto" class="produto"></div>
     </div>
-
     <script>
-        // Restaurar busca anterior ao carregar a página (se voltou de detalhes)
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log('🔄 Verificando cache de ofertas...');
-            const urlBusca = sessionStorage.getItem('ultima_url_busca');
-            const ofertasCache = sessionStorage.getItem('ofertas_cache');
-            
-            console.log('📋 URL salva:', urlBusca);
-            console.log('📦 Ofertas salvas:', ofertasCache ? 'SIM' : 'NÃO');
-            
-            if (urlBusca && ofertasCache) {
-                console.log('✅ Cache encontrado! Restaurando...');
-                // Restaurar URL no input
-                document.getElementById('urlInput').value = urlBusca;
-                
-                // Restaurar ofertas
-                try {
-                    const dadosOfertas = JSON.parse(ofertasCache);
-                    console.log('Dados ofertas:', dadosOfertas);
-                    
-                    if (dadosOfertas && dadosOfertas.ofertas && dadosOfertas.ofertas.length > 0) {
-                        console.log('🔄 Restaurando', dadosOfertas.ofertas.length, 'ofertas');
-                        // Restaurar usando a função mostrarOfertas
-                        mostrarOfertas(dadosOfertas);
-                        
-                        // Scroll suave até as ofertas
-                        setTimeout(() => {
-                            const ofertasDiv = document.getElementById('ofertas');
-                            if (ofertasDiv) {
-                                console.log('📍 Fazendo scroll até ofertas');
-                                ofertasDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        }, 100);
-                    } else {
-                        console.log('⚠️ Dados de ofertas inválidos');
-                    }
-                } catch (e) {
-                    console.error('❌ Erro ao restaurar ofertas:', e);
-                }
-                
-                // NÃO limpar o sessionStorage aqui - só limpar quando fizer nova busca
-            } else {
-                console.log('ℹ️ Nenhum cache encontrado');
-            }
-        });
-
-        async function extrairProduto() {
-            const url = document.getElementById('urlInput').value.trim();
+        async function extrairProduto(urlParam) {
+            const url = urlParam || document.getElementById('urlInput').value.trim();
             if (!url) {
-                mostrarMensagem('Por favor, cole um link válido', 'error');
+                mostrarMensagem('Por favor, digite o que você procura', 'error');
                 return;
             }
-
-            // Limpar cache de busca anterior ao fazer nova busca
-            sessionStorage.removeItem('ultima_url_busca');
-            sessionStorage.removeItem('ofertas_cache');
 
             document.getElementById('produto').style.display = 'none';
             document.getElementById('message').style.display = 'none';
@@ -700,23 +372,23 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: url })
                 });
-
                 const data = await response.json();
+                console.log('API Response:', data);
+
                 if (data.success) {
-                    if (data.tipo === 'redirect_detalhes') {
-                        // Redirecionar para página de detalhes via POST
-                        navegarDetalhes(data.url, '');
-                        return;
-                    } else if (data.tipo === 'ofertas') {
-                        mostrarOfertas(data.produto);
-                    } else {
-                        mostrarProduto(data.produto);
+                    if (data.tipo === 'ofertas') {
+                        const ofertas = data.ofertas || [];
+                        renderizarOfertas(ofertas, data);
+                        mostrarMensagem('✅ Ofertas encontradas!', 'success');
+                    } else if (data.tipo === 'detalhes') {
+                        renderizarDetalhes(data.produto);
+                        mostrarMensagem('✅ Detalhes do produto extraídos!', 'success');
                     }
-                    mostrarMensagem('✅ Produto extraído com sucesso!', 'success');
                 } else {
-                    mostrarMensagem('❌ Erro: ' + data.error, 'error');
+                    mostrarMensagem('❌ Erro: ' + (data.error || 'Erro desconhecido'), 'error');
                 }
             } catch (error) {
+                console.error('Erro:', error);
                 mostrarMensagem('❌ Erro de conexão: ' + error.message, 'error');
             } finally {
                 document.getElementById('loading').style.display = 'none';
@@ -724,158 +396,191 @@
             }
         }
 
-        function mostrarOfertas(data) {
-            // Ocultar layout de produto único
-            document.getElementById('produto').style.display = 'none';
-            
-            // Armazenar ofertas globalmente para ordenação
-            window.ofertasData = data;
-            
-            renderizarOfertas(data.ofertas, data);
-        }
+        function renderizarDetalhes(produto) {
+            const container = document.getElementById('produto');
+            container.style.display = 'block';
 
-        function renderizarOfertas(ofertas, data) {
-            // Criar HTML para ofertas
+            if (!produto) {
+                container.innerHTML = '<p class="error">Erro ao carregar detalhes do produto.</p>';
+                return;
+            }
+
+            const nome = produto.nome || 'Produto sem nome';
+            const preco = produto.preco || 'Preço não disponível';
+            const thumbnail = produto.thumbnail || '';
+            const logoLoja = produto.logo_loja || '';
+            const specsBasicas = produto.especificacoes_basicas || [];
+            const specsExtras = produto.especificacoes_extras || [];
+            const calculos = produto.calculos;
+
             let html = `
                 <div class="produto-card">
                     <div class="produto-header">
-                        <h2 class="produto-titulo">${data.titulo}</h2>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 10px;">
-                            <p style="color: #64748b;">${ofertas.length} ofertas encontradas</p>
-                            <div style="display: flex; gap: 10px;">
-                                <button onclick="ordenarPorPreco('menor')" class="btn-ordenar">💰 Menor Preço</button>
-                                <button onclick="ordenarPorPreco('maior')" class="btn-ordenar">💎 Maior Preço</button>
-                                <button onclick="ordenarPorPreco('original')" class="btn-ordenar">📋 Original</button>
+                        <h2 class="produto-titulo">${nome}</h2>
+                        <div style="display: flex; align-items: center; gap: 20px; margin-top: 20px;">
+                            ${thumbnail ? `<img src="${thumbnail}" alt="${nome}" style="max-width: 200px; border-radius: 8px;">` : ''}
+                            <div>
+                                <div style="font-size: 32px; font-weight: 800; color: #10b981;">${preco}</div>
+                                ${logoLoja ? `<img src="${logoLoja}" alt="Loja" style="max-height: 40px; margin-top: 10px;">` : ''}
                             </div>
                         </div>
                     </div>
                     <div class="produto-content">
-                        <div class="ofertas-lista">
             `;
-            
-            ofertas.forEach((oferta, i) => {
-                const imgSrc = oferta.imagem || 'https://via.placeholder.com/100x100?text=Sem+Imagem';
-                const imgLoja = oferta.imagem_loja || 'https://via.placeholder.com/60x60?text=Loja';
-                
+
+            if (calculos) {
                 html += `
-                    <div class="oferta-card">
-                        <div class="oferta-thumb">
-                            <img src="${imgSrc}" alt="${oferta.produto || 'Produto'}">
-                        </div>
-                        <div class="oferta-info">
-                            <h3 class="oferta-produto">
-                                ${oferta.link_produto ? `<a href="#" onclick="navegarDetalhes('${oferta.link_produto.replace(/'/g, "\\'")}', '${oferta.logo_loja ? oferta.logo_loja.replace(/'/g, "\\'") : ''}'); return false;" style="cursor: pointer;">${oferta.produto || 'Produto'}</a>` : oferta.produto || 'Produto'}
-                            </h3>
-                            <div class="oferta-preco">${oferta.preco || 'Consultar'}</div>
-                        </div>
-                        <div class="oferta-loja-logo">
-                            <img src="${imgLoja}" alt="${oferta.loja || 'Loja'}" title="${oferta.loja || 'Loja'}">
+                    <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #bbf7d0;">
+                        <h3 style="color: #166534; margin-bottom: 15px; font-size: 18px;">💰 Cálculo de Importação</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div>
+                                <div style="font-size: 14px; color: #4b5563;">Preço em Dólar</div>
+                                <div style="font-size: 18px; font-weight: 600;">US$ ${calculos.preco_dolar.toFixed(2)}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 14px; color: #4b5563;">Cotação Dólar</div>
+                                <div style="font-size: 18px; font-weight: 600;">R$ ${calculos.cotacao_dolar.toFixed(2)}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 14px; color: #4b5563;">Preço em Reais</div>
+                                <div style="font-size: 18px; font-weight: 600;">R$ ${calculos.preco_reais.toFixed(2)}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 14px; color: #4b5563;">Taxa (27%)</div>
+                                <div style="font-size: 18px; font-weight: 600;">R$ ${calculos.taxa_bestguai.toFixed(2)}</div>
+                            </div>
+                            <div style="grid-column: 1 / -1; border-top: 1px solid #bbf7d0; padding-top: 10px; margin-top: 5px;">
+                                <div style="font-size: 16px; color: #166534; font-weight: 700;">Valor Final Estimado</div>
+                                <div style="font-size: 24px; font-weight: 800; color: #166534;">R$ ${calculos.valor_total.toFixed(2)}</div>
+                            </div>
                         </div>
                     </div>
                 `;
-            });
-            
-            html += `
+            }
+
+            if (specsBasicas.length > 0) {
+                html += `
+                    <h3 style="margin-bottom: 15px; font-size: 20px; color: #1f2937;">Especificações Técnicas</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                `;
+                specsBasicas.forEach(spec => {
+                    html += `
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                            <span style="font-weight: 600; color: #4b5563;">${spec.chave}:</span>
+                            <span style="color: #1f2937;">${spec.valor}</span>
                         </div>
-                    </div>
-                    <div class="produto-link-section">
-                        <div class="produto-url-label">🔗 Página Original</div>
-                        <a href="${data.url}" target="_blank" class="produto-url">${data.url}</a>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (specsExtras.length > 0) {
+                html += `
+                    <h3 style="margin-bottom: 15px; font-size: 20px; color: #1f2937;">Mais Informações</h3>
+                    <ul style="list-style-type: disc; padding-left: 20px; color: #4b5563; line-height: 1.8;">
+                `;
+                specsExtras.forEach(spec => {
+                    html += `<li>${spec}</li>`;
+                });
+                html += '</ul>';
+            }
+
+            html += `
+                    <div style="margin-top: 30px; text-align: center;">
+                        <button onclick="location.reload()" style="background: #6b7280; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            ⬅️ Voltar para Busca
+                        </button>
                     </div>
                 </div>
-            `;
-            
-            document.getElementById('produto').innerHTML = html;
-            document.getElementById('produto').style.display = 'block';
-            
-            setTimeout(() => {
-                document.getElementById('produto').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
+            </div>`;
+
+            container.innerHTML = html;
         }
 
-        function extrairValorPreco(precoStr) {
-            // Extrair valor numérico do preço (ex: "US$ 685,00" -> 685.00)
-            if (!precoStr || precoStr === 'Consultar') return 999999;
-            const match = precoStr.match(/[\d.,]+/);
-            if (!match) return 999999;
-            return parseFloat(match[0].replace(',', '.'));
+        function renderizarOfertas(ofertas, data) {
+            const container = document.getElementById('produto');
+            container.style.display = 'block';
+
+            let html = '';
+
+            // Check if we have category suggestions
+            const hasSuggestions = data.sugestoes && data.sugestoes.length > 0;
+
+            // If we have suggestions, show ONLY categories (category-first logic)
+            if (hasSuggestions) {
+                html += '<div class="sugestoes-container">';
+                html += '<div class="sugestoes-title">🎯 Escolha uma categoria:</div>';
+                html += '<div class="sugestoes-list">';
+                data.sugestoes.forEach(sugestao => {
+                    html += `<div class="sugestao-tag" onclick="extrairProduto('${sugestao.link}')">${sugestao.nome}</div>`;
+                });
+                html += '</div></div>';
+
+                // Don't show offers if we have suggestions - return early
+                container.innerHTML = html;
+                window.ofertasData = data;
+                return;
+            }
+
+            // If no suggestions, check if we have offers
+            if (!ofertas || ofertas.length === 0) {
+                container.innerHTML = '<p class="error">Nenhuma oferta encontrada.</p>';
+                return;
+            }
+
+            // Botões de ordenação
+            html += `
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                    <span style="font-weight: 600; color: #4b5563;">Ordenar por:</span>
+                    <button class="btn-ordenar" onclick="ordenarPorPreco('menor')">Menor Preço</button>
+                    <button class="btn-ordenar" onclick="ordenarPorPreco('maior')">Maior Preço</button>
+                </div>
+            `;
+
+            html += '<div class="ofertas-lista">';
+
+            ofertas.forEach(oferta => {
+                const nome = oferta.nome || 'Produto sem nome';
+                const preco = oferta.preco || 'Preço não disponível';
+                const loja = oferta.loja || 'Loja desconhecida';
+                const logoLoja = oferta.logo_loja || '';
+                const linkProduto = oferta.link_produto || '#';
+                const thumb = oferta.img || '';
+
+                const onclickAttr = linkProduto !== '#' ? `onclick="extrairProduto('${linkProduto}')"` : '';
+                const nomeStyle = linkProduto !== '#' ? 'cursor: pointer; color: #667eea;' : '';
+
+                html += `
+                    <div class="oferta-card">
+                        <div class="oferta-thumb">
+                            ${thumb ? `<img src="${thumb}" alt="${nome}">` : '<span>Sem img</span>'}
+                        </div>
+                        <div class="oferta-info">
+                            <div class="oferta-produto" ${onclickAttr} style="${nomeStyle}">${nome}</div>
+                            <div class="oferta-loja">${loja}</div>
+                        </div>
+                        <div class="oferta-preco">${preco}</div>
+                        ${logoLoja ? `<div class="oferta-loja-logo"><img src="${logoLoja}" alt="${loja}"></div>` : ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+
+            // Store data for sorting
+            window.ofertasData = data;
         }
 
         function ordenarPorPreco(tipo) {
-            if (!window.ofertasData) return;
-            
-            let ofertas = [...window.ofertasData.ofertas];
-            
-            if (tipo === 'menor') {
-                ofertas.sort((a, b) => extrairValorPreco(a.preco) - extrairValorPreco(b.preco));
-            } else if (tipo === 'maior') {
-                ofertas.sort((a, b) => extrairValorPreco(b.preco) - extrairValorPreco(a.preco));
-            }
-            // Se for 'original', mantém a ordem original
-            
-            renderizarOfertas(ofertas, window.ofertasData);
-        }
+            if (!window.ofertasData || !window.ofertasData.ofertas) return;
 
-        function mostrarProduto(produto) {
-            document.getElementById('produtoTitulo').textContent = produto.titulo || 'Título não encontrado';
-            
-            if (produto.marca) {
-                document.getElementById('produtoMarca').textContent = produto.marca;
-                document.getElementById('produtoMarca').style.display = 'inline-block';
-            } else {
-                document.getElementById('produtoMarca').style.display = 'none';
-            }
-            
-            const precoTexto = produto.preco || 'Não disponível';
-            document.getElementById('produtoPreco').textContent = precoTexto.replace(/US?\$?\s*/i, '');
-            document.getElementById('btnVerProduto').href = produto.url;
-            document.getElementById('produtoDescricao').textContent = produto.descricao || 'Descrição não disponível';
-            
-            const detalhesSection = document.getElementById('detalhesSection');
-            const detalhesContainer = document.getElementById('produtoDetalhes');
-            
-            if (produto.detalhes && produto.detalhes.length > 0) {
-                detalhesSection.style.display = 'block';
-                let html = '';
-                produto.detalhes.forEach(detalhe => {
-                    html += `<div class="detalhe-item"><div class="detalhe-label">${detalhe.nome}</div><div class="detalhe-valor">${detalhe.valor}</div></div>`;
-                });
-                detalhesContainer.innerHTML = html;
-            } else {
-                detalhesSection.style.display = 'none';
-            }
-            
-            const fotosContainer = document.getElementById('produtoFotos');
-            fotosContainer.innerHTML = '';
-            
-            if (produto.fotos && produto.fotos.length > 0) {
-                const divPrincipal = document.createElement('div');
-                divPrincipal.className = 'foto-principal';
-                divPrincipal.innerHTML = `<img src="${produto.fotos[0]}" alt="Foto principal">`;
-                fotosContainer.appendChild(divPrincipal);
-                
-                if (produto.fotos.length > 1) {
-                    const galeriaDiv = document.createElement('div');
-                    galeriaDiv.className = 'fotos-galeria';
-                    produto.fotos.slice(1).forEach(foto => {
-                        const div = document.createElement('div');
-                        div.className = 'foto-item';
-                        div.innerHTML = `<img src="${foto}" alt="Foto do produto">`;
-                        div.onclick = () => window.open(foto, '_blank');
-                        galeriaDiv.appendChild(div);
-                    });
-                    fotosContainer.appendChild(galeriaDiv);
-                }
-            }
-            
-            const urlLink = document.getElementById('produtoUrl');
-            urlLink.href = produto.url;
-            urlLink.textContent = produto.url;
-            
-            document.getElementById('produto').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('produto').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
+            const ofertas = [...window.ofertasData.ofertas];
+            ofertas.sort((a, b) => {
+                const precoA = parseFloat((a.preco || '999999').match(/[\d.,]+/)?.[0]?.replace(',', '.') || 999999);
+                const precoB = parseFloat((b.preco || '999999').match(/[\d.,]+/)?.[0]?.replace(',', '.') || 999999);
+                return tipo === 'menor' ? precoA - precoB : precoB - precoA;
+            });
+            renderizarOfertas(ofertas, window.ofertasData);
         }
 
         function mostrarMensagem(texto, tipo) {
@@ -883,52 +588,13 @@
             msg.textContent = texto;
             msg.className = 'message ' + tipo;
             msg.style.display = 'block';
-            setTimeout(() => { msg.style.display = 'none'; }, 5000);
+            setTimeout(() => msg.style.display = 'none', 5000);
         }
 
-        async function navegarDetalhes(url, logo) {
-            try {
-                console.log('🔍 navegarDetalhes chamado:');
-                console.log('   URL:', url);
-                console.log('   Logo:', logo);
-                
-                // Salvar estado atual da página (URL da busca e resultados)
-                const urlAtual = document.getElementById('urlInput').value;
-                if (urlAtual) {
-                    sessionStorage.setItem('ultima_url_busca', urlAtual);
-                }
-                
-                // Salvar ofertas atuais se existirem
-                if (window.ofertasData && window.ofertasData.ofertas) {
-                    sessionStorage.setItem('ofertas_cache', JSON.stringify(window.ofertasData));
-                }
-                
-                // Enviar dados via POST
-                const response = await fetch('/detalhes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url, logo: logo || '' })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    // Armazenar detail_id no sessionStorage
-                    sessionStorage.setItem('detail_id', data.detail_id);
-                    if (logo) {
-                        sessionStorage.setItem('detail_logo', logo);
-                    }
-                    // Navegar para a página limpa
-                    window.location.href = '/detalhes';
-                }
-            } catch (error) {
-                console.error('Erro ao navegar:', error);
-                alert('Erro ao carregar detalhes');
-            }
-        }
-
-        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+        document.getElementById('urlInput').addEventListener('keypress', e => {
             if (e.key === 'Enter') extrairProduto();
         });
     </script>
 </body>
+
 </html>
