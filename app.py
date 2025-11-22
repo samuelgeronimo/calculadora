@@ -309,13 +309,21 @@ class ProductExtractor:
             print(f"🔍 Acessando página de ofertas: {url}")
             await self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
             
-            print("⏰ Aguardando JavaScript carregar...")
-            await asyncio.sleep(8)
+            print("⏰ Aguardando conteúdo carregar...")
+            # Aguardar por qualquer um dos seletores comuns de produto (mais inteligente que sleep fixo)
+            try:
+                await self.page.wait_for_selector(
+                    '.promocao-produtos-item, .product-box, .box-product, .item-product',
+                    timeout=5000
+                )
+            except:
+                # Se nenhum seletor específico aparecer, aguardar apenas 2s
+                await asyncio.sleep(2)
             
             # Scroll para carregar lazy loading
             print("📜 Fazendo scroll...")
             await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)  # Reduzido de 3s para 1s
             
             # Extrair título do produto
             titulo = await self.extrair_texto_seletor([
@@ -383,7 +391,7 @@ class ProductExtractor:
             print(f"  ✓ Total de cards para processar: {len(elements)}")
             
             # Extrair dados de cada oferta
-            for i, el in enumerate(elements[:100]):  # Limitar a 100 ofertas
+            for i, el in enumerate(elements[:50]):  # Reduzido de 100 para 50 para melhor performance
                 try:
                     # Extrair nome da loja e imagem
                     loja = 'Loja não identificada'
