@@ -1,58 +1,127 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ofertas - Compras Paraguai</title>
     <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <div class="container-ofertas">
-        <header>
-            <h1>🛒 Ofertas Encontradas</h1>
-            <a href="/" class="btn-voltar">← Nova Busca</a>
-        </header>
+    <style>
+        .sugestoes-container {
+            padding: 20px;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: none;
+        }
 
-        <div class="filtros">
-            <label>Ordenar por:</label>
+        .sugestoes-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .sugestoes-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sugestao-tag {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .sugestao-tag:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ofertas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="controls">
+        <a href="/" class="back-btn">← Voltar para busca</a>
+        <div class="filters">
             <select id="ordenacao" onchange="ordenarOfertas()">
                 <option value="preco">Menor Preço</option>
                 <option value="loja">Loja (A-Z)</option>
-                <option value="frete">Menor Frete</option>
             </select>
         </div>
+    </header>
 
-        <div id="ofertas-container" class="ofertas-grid">
-            <!-- As ofertas serão inseridas aqui via JavaScript -->
-        </div>
+    <div id="sugestoes-container" class="sugestoes-container">
+        <div class="sugestoes-title">Sugestões de Categorias</div>
+        <div id="sugestoes-list" class="sugestoes-list"></div>
+    </div>
+
+    <div id="ofertas-container" class="ofertas-grid">
+        <!-- Ofertas serão inseridas aqui -->
+        <div class="loading">Carregando ofertas...</div>
     </div>
 
     <script>
         let ofertasData = [];
 
-        // Carregar ofertas da API
         async function carregarOfertas() {
             try {
                 const response = await fetch('/api/ofertas');
                 const data = await response.json();
-                
-                if (data.ofertas && data.ofertas.length > 0) {
+
+                if (data.sugestoes && data.sugestoes.length > 0) {
+                    mostrarSugestoes(data.sugestoes);
+                }
+
+                if (data.ofertas) {
                     ofertasData = data.ofertas;
-                    mostrarOfertas(ofertasData);
+                    mostrarOfertas(data.ofertas);
                 } else {
-                    document.getElementById('ofertas-container').innerHTML = 
-                        '<p style="text-align: center; color: #666;">Nenhuma oferta encontrada. <a href="/">Fazer nova busca</a></p>';
+                    document.getElementById('ofertas-container').innerHTML = '<p>Nenhuma oferta encontrada.</p>';
                 }
             } catch (error) {
-                console.error('Erro ao carregar ofertas:', error);
-                document.getElementById('ofertas-container').innerHTML = 
-                    '<p style="text-align: center; color: #666;">Erro ao carregar ofertas. <a href="/">Fazer nova busca</a></p>';
+                console.error('Erro:', error);
+                document.getElementById('ofertas-container').innerHTML = '<p>Erro ao carregar ofertas.</p>';
             }
         }
 
         function mostrarOfertas(ofertas) {
             const container = document.getElementById('ofertas-container');
-            
+
             if (!ofertas || ofertas.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma oferta encontrada.</p>';
                 return;
@@ -61,17 +130,16 @@
             container.innerHTML = ofertas.map(oferta => `
                 <div class="oferta-card" onclick="verDetalhes('${oferta.url}', '${oferta.logo_loja || ''}')">
                     <div class="oferta-imagem">
-                        <img src="${oferta.thumbnail || '/static/images/sem-imagem.png'}" alt="${oferta.titulo}" loading="lazy">
+                        <img src="${oferta.imagem || '/static/images/sem-imagem.png'}" alt="${oferta.produto}" loading="lazy">
                     </div>
                     <div class="oferta-info">
-                        <h3 class="oferta-titulo">${oferta.titulo}</h3>
+                        <h3 class="oferta-titulo">${oferta.produto}</h3>
                         <div class="oferta-loja">
-                            ${oferta.logo_loja ? `<img src="${oferta.logo_loja}" alt="Logo" class="logo-mini">` : ''}
+                            ${oferta.imagem_loja ? `<img src="${oferta.imagem_loja}" alt="${oferta.loja}" class="logo-mini">` : ''}
                             <span>${oferta.loja}</span>
                         </div>
                         <div class="oferta-precos">
                             <div class="preco-principal">${oferta.preco}</div>
-                            ${oferta.frete ? `<div class="preco-frete">Frete: ${oferta.frete}</div>` : ''}
                         </div>
                         <button class="btn-detalhes">Ver Detalhes →</button>
                     </div>
@@ -79,19 +147,34 @@
             `).join('');
         }
 
+        function mostrarSugestoes(sugestoes) {
+            const container = document.getElementById('sugestoes-container');
+            const list = document.getElementById('sugestoes-list');
+
+            if (!sugestoes || sugestoes.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            list.innerHTML = sugestoes.map(sugestao => `
+                <a href="${sugestao.link}" class="sugestao-tag" target="_blank">
+                    ${sugestao.nome}
+                </a>
+            `).join('');
+
+            container.style.display = 'block';
+        }
+
         function ordenarOfertas() {
             const tipo = document.getElementById('ordenacao').value;
             let ordenadas = [...ofertasData];
 
-            switch(tipo) {
+            switch (tipo) {
                 case 'preco':
                     ordenadas.sort((a, b) => parsePreco(a.preco) - parsePreco(b.preco));
                     break;
                 case 'loja':
-                    ordenadas.sort((a, b) => a.loja.localeCompare(b.loja));
-                    break;
-                case 'frete':
-                    ordenadas.sort((a, b) => parsePreco(a.frete || '9999') - parsePreco(b.frete || '9999'));
+                    ordenadas.sort((a, b) => (a.loja || '').localeCompare(b.loja || ''));
                     break;
             }
 
@@ -100,27 +183,28 @@
 
         function parsePreco(preco) {
             if (!preco) return 999999;
-            const numero = preco.replace(/[^\d,]/g, '').replace(',', '.');
+            // Remove U$, R$, spaces, etc, keep numbers and comma/dot
+            const numero = preco.replace(/[^\d,.]/g, '').replace(',', '.');
             return parseFloat(numero) || 999999;
         }
 
         function verDetalhes(url, logo) {
-            // Salvar dados no sessionStorage
             fetch('/detalhes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: url, logo_loja: logo })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = '/detalhes';
-                }
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/detalhes';
+                    }
+                });
         }
 
         // Carregar ao iniciar
         carregarOfertas();
     </script>
 </body>
+
 </html>

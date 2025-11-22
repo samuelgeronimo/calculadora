@@ -4,11 +4,38 @@ import requests
 from threading import Thread
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from playwright.async_api import async_playwright
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # Chave secreta para sessões
 
 # Armazenamento temporário de dados de detalhes
+
+# Helper functions for extraction
+async def _extract_async(url):
+    extractor = ProductExtractor()
+    await extractor.iniciar()
+    try:
+        return await extractor.extrair_ofertas(url)
+    finally:
+        await extractor.fechar()
+
+def _extrair(url):
+    """Run async extraction synchronously and return result dict."""
+    return run_async(_extract_async(url))
+
+async def _extract_details_async(url):
+    extractor = ProductExtractor()
+    await extractor.iniciar()
+    try:
+        return await extractor.extrair_detalhes_produto(url)
+    finally:
+        await extractor.fechar()
+
+def _extrair_detalhes(url):
+    """Run async detail extraction synchronously."""
+    return run_async(_extract_details_async(url))
+
 detalhes_temp = {}
 
 def obter_cotacao_dolar():
@@ -298,99 +325,159 @@ class ProductExtractor:
             ])
             print(f"  📝 Produto: {titulo}")
             
-            # Extrair todas as ofertas usando o seletor correto
+            # Extrair sugestões de categorias
+            sugestoes = []
+            try:
+                suggestions_list = await self.page.query_selector('.ctg-suggestions-list ul')
+                if suggestions_list:
+                    items = await suggestions_list.query_selector_all('li a')
+                    for item in items:
+                        text = await item.inner_text()
+                        href = await item.get_attribute('href')
+                        if text and href:
+                            if not href.startswith('http'):
+                                href = f"https://www.comprasparaguai.com.br{href}"
+                            sugestoes.append({
+                                'nome': text.strip(),
+                                'link': href
+                            })
+                    print(f"  ✓ Encontrou {len(sugestoes)} sugestões de categorias")
+            except Exception as e:
+                print(f"  ⚠️ Erro ao extrair sugestões: {e}")
+            
+            # Extrair todas as ofertas usando múltiplos seletores possíveis
             ofertas = []
-            elements = await self.page.query_selector_all('.promocao-produtos-item')
-            print(f"  ✓ Encontrou {len(elements)} cards de ofertas")
+            selectors = [
+                '.promocao-produtos-item',  # Página de promoções
+                '.product-box',             # Layout padrão antigo
+                '.box-product',             # Layout padrão novo
+                '.item-product',            # Variação
+                'div[itemtype="http://schema.org/Product"]', # Schema.org
+                '.col-md-4.col-sm-6 .product', # Grid comum
+                '.search-results .row > div' # Resultados de busca genéricos
+            ]
+            
+            elements = []
+            for selector in selectors:
+                found = await self.page.query_selector_all(selector)
+                if found:
+                    print(f"  ✓ Encontrou {len(found)} itens com seletor '{selector}'")
+                    elements.extend(found)
+                    break # Usar o primeiro seletor que funcionar
+            
+            if not elements:
+                # Tentativa de fallback genérica: buscar cards que tenham preço e imagem
+                print("  ⚠️ Nenhum seletor específico funcionou. Tentando busca genérica...")
+                potential_cards = await self.page.query_selector_all('.row > div, .grid > div, li')
+                for card in potential_cards:
+                    # Verificar se tem cara de produto (tem preço e link)
+                    try:
+                        has_price = await card.query_selector('.price, .amount, strong')
+                        has_link = await card.query_selector('a')
+                        if has_price and has_link:
+                            elements.append(card)
+                    except:
+                        continue
+                print(f"  ✓ Encontrou {len(elements)} itens genéricos")
+
+            print(f"  ✓ Total de cards para processar: {len(elements)}")
             
             # Extrair dados de cada oferta
             for i, el in enumerate(elements[:100]):  # Limitar a 100 ofertas
                 try:
-                    # Extrair nome da loja (do atributo alt da imagem)
-                    loja = ''
+                    # Extrair nome da loja e imagem
+                    loja = 'Loja não identificada'
                     imagem_loja = ''
                     try:
-                        loja_img = await el.query_selector('.store-image')
-                        if loja_img:
-                            loja = await loja_img.get_attribute('alt')
-                            if not loja:
-                                loja = await loja_img.get_attribute('title')
-                            # Extrair URL da imagem da loja
-                            imagem_loja = await loja_img.get_attribute('src')
-                            if not imagem_loja or 'loading-images' in imagem_loja:
-                                imagem_loja = await loja_img.get_attribute('data-src')
+                        # Tentar extrair do link da loja
+                        loja_link = await el.query_selector('a.btn-store-redirect, .store-logo img')
+                        if loja_link:
+                            tag = await loja_link.evaluate('el => el.tagName')
+                            if tag == 'IMG':
+                                src = await loja_link.get_attribute('src')
+                                alt = await loja_link.get_attribute('alt')
+                                if alt: loja = alt
+                                if src: imagem_loja = src
+                            else:
+                                loja_text = await loja_link.inner_text()
+                                if loja_text:
+                                    loja = loja_text.strip().replace('IR PARA LOJA', '').strip()
                     except:
                         pass
                     
                     # Extrair preço (em US$)
                     preco = ''
                     try:
-                        preco_el = await el.query_selector('.promocao-item-preco-oferta strong')
-                        if preco_el:
-                            preco = await preco_el.inner_text()
+                        # Seletores comuns de preço
+                        price_selectors = [
+                            '.promocao-item-preco-oferta strong',
+                            '.price',
+                            '.amount',
+                            '.product-price',
+                            'span[itemprop="price"]'
+                        ]
+                        for sel in price_selectors:
+                            preco_el = await el.query_selector(sel)
+                            if preco_el:
+                                preco = await preco_el.inner_text()
+                                break
+                        
+                        if not preco:
+                            # Tentar buscar texto solto que pareça preço
+                            text = await el.inner_text()
+                            import re
+                            match = re.search(r'US\$\s*[\d,.]+', text)
+                            if match:
+                                preco = match.group(0)
+                                
+                        if preco:
                             preco = preco.strip()
                     except:
                         pass
                     
-                    # Extrair link para o site da loja
-                    link_loja = ''
-                    try:
-                        link_el = await el.query_selector('a.btn-store-redirect')
-                        if link_el:
-                            link_loja = await link_el.get_attribute('href')
-                    except:
-                        pass
-                    
-                    # Extrair nome do produto específico (variação)
+                    # Extrair nome do produto
                     nome_produto = ''
-                    try:
-                        nome_el = await el.query_selector('.promocao-item-nome a')
-                        if nome_el:
-                            nome_produto = await nome_el.inner_text()
-                            nome_produto = nome_produto.strip()
-                    except:
-                        pass
-                    
-                    # Extrair link do produto (interno comprasparaguai)
                     link_produto = ''
                     try:
-                        link_el = await el.query_selector('.promocao-item-nome a')
-                        if link_el:
-                            href = await link_el.get_attribute('href')
-                            if href:
-                                if href.startswith('http'):
-                                    link_produto = href
-                                else:
-                                    link_produto = f"https://www.comprasparaguai.com.br{href}"
+                        # Buscar link que tenha texto longo (provável título)
+                        links = await el.query_selector_all('a')
+                        for link in links:
+                            href = await link.get_attribute('href')
+                            text = await link.inner_text()
+                            
+                            # Se tem href e texto razoável, é candidato
+                            if href and len(text) > 10:
+                                # Ignorar links de loja
+                                if 'loja' in href or 'redirect' in href:
+                                    continue
+                                    
+                                nome_produto = text.strip()
+                                link_produto = href
+                                if not link_produto.startswith('http'):
+                                    link_produto = f"https://www.comprasparaguai.com.br{link_produto}"
+                                break
                     except:
                         pass
                     
-                    # Extrair imagem do produto
-                    imagem = ''
+                    # Thumbnail
+                    thumb = ''
                     try:
-                        img_el = await el.query_selector('.promocao-item-img img')
-                        if img_el:
-                            imagem = await img_el.get_attribute('src')
-                            if not imagem or 'loading-images' in imagem:
-                                imagem = await img_el.get_attribute('data-src')
+                        img = await el.query_selector('img')
+                        if img:
+                            thumb = await img.get_attribute('src') or await img.get_attribute('data-src')
                     except:
                         pass
-                    
-                    if loja or preco:
+
+                    if nome_produto and preco:
                         ofertas.append({
-                            'loja': loja,
-                            'imagem_loja': imagem_loja,
+                            'nome': nome_produto,
                             'preco': preco,
-                            'link_loja': link_loja,
+                            'loja': loja,
                             'link_produto': link_produto,
-                            'produto': nome_produto,
-                            'imagem': imagem
+                            'img': thumb,
+                            'logo_loja': imagem_loja
                         })
-                        print(f"    • {loja}: {preco} - {nome_produto[:40]}")
-                        if imagem_loja:
-                            print(f"      🏪 Logo: {imagem_loja[:50]}...")
-                        else:
-                            print(f"      🏪 Sem logo")
+    
                 except Exception as e:
                     print(f"  ⚠️ Erro ao extrair oferta {i+1}: {e}")
                     continue
@@ -399,6 +486,7 @@ class ProductExtractor:
                 'titulo': titulo,
                 'total_ofertas': len(ofertas),
                 'ofertas': ofertas,
+                'sugestoes': sugestoes,
                 'url': url
             }
             
@@ -410,7 +498,7 @@ class ProductExtractor:
             import traceback
             traceback.print_exc()
             return None
-    
+
     async def extrair_detalhes_produto(self, url):
         """Extrair detalhes completos de um produto do Compras Paraguai"""
         try:
@@ -652,48 +740,37 @@ class ProductExtractor:
 
 @app.route('/')
 def index():
-    return render_template('extrator.html')
+    q = request.args.get('q')
+    if q:
+        search_url = f"https://www.comprasparaguai.com.br/busca/?q={urllib.parse.quote(q)}"
+        result = _extrair(search_url)
+        if result:
+            session['ofertas'] = result.get('ofertas', [])
+            session['sugestoes'] = result.get('sugestoes', [])
+            session['produto'] = q
+            return render_template('ofertas.html')
+        else:
+            return render_template('extrator.html', error='Nenhuma oferta encontrada')
+    else:
+        return render_template('extrator.html')
 
 @app.route('/buscar', methods=['POST'])
 def buscar():
-    """Rota para buscar produtos"""
+    """Rota para buscar produtos via POST"""
     try:
         data = request.get_json()
         produto = data.get('produto', '').strip()
-        
         if not produto:
             return jsonify({'success': False, 'error': 'Produto não informado'})
-        
-        # Criar URL de busca do Compras Paraguai
-        produto_encoded = produto.replace(' ', '-').lower()
-        url = f"https://www.comprasparaguai.com.br/{produto_encoded}"
-        
-        # Extrair ofertas
-        async def extrair():
-            extractor = ProductExtractor()
-            await extractor.iniciar()
-            try:
-                return await extractor.extrair_ofertas(url)
-            finally:
-                await extractor.fechar()
-        
-        resultado = run_async(extrair())
-        
-        if resultado and 'ofertas' in resultado:
-            # Salvar na sessão
-            session['ofertas'] = resultado['ofertas']
+        search_url = f"https://www.comprasparaguai.com.br/busca/?q={urllib.parse.quote(produto)}"
+        result = _extrair(search_url)
+        if result:
+            session['ofertas'] = result.get('ofertas', [])
+            session['sugestoes'] = result.get('sugestoes', [])
             session['produto'] = produto
-            
-            return jsonify({
-                'success': True, 
-                'total': len(resultado['ofertas'])
-            })
+            return jsonify({'success': True, 'total': len(result.get('ofertas', []))})
         else:
-            return jsonify({
-                'success': False, 
-                'error': 'Nenhuma oferta encontrada'
-            })
-            
+            return jsonify({'success': False, 'error': 'Nenhuma oferta encontrada'})
     except Exception as e:
         print(f"Erro ao buscar: {e}")
         import traceback
@@ -709,7 +786,8 @@ def ofertas():
 def api_ofertas():
     """Retorna ofertas da sessão"""
     ofertas = session.get('ofertas', [])
-    return jsonify({'ofertas': ofertas})
+    sugestoes = session.get('sugestoes', [])
+    return jsonify({'ofertas': ofertas, 'sugestoes': sugestoes})
 
 @app.route('/extrator')
 def extrator():
@@ -719,96 +797,131 @@ def extrator():
 @app.route('/detalhes', methods=['GET', 'POST'])
 def detalhes():
     if request.method == 'POST':
-        # Receber dados via POST e armazenar temporariamente
-        data = request.get_json() if request.is_json else request.form
-        url = data.get('url', '')
-        logo = data.get('logo', '')
-        
-        print(f"📥 POST /detalhes recebido:")
-        print(f"   URL: {url[:80] if url else 'Nenhuma'}...")
-        print(f"   Logo: {logo[:80] if logo else 'Nenhuma'}...")
-        
-        # Gerar ID único para esta sessão
-        detail_id = secrets.token_urlsafe(16)
-        detalhes_temp[detail_id] = {'url': url, 'logo': logo}
-        
-        print(f"   💾 Armazenado com ID: {detail_id}")
-        print(f"   📊 Total no cache: {len(detalhes_temp)} itens")
-        
-        return jsonify({'success': True, 'detail_id': detail_id})
+        try:
+            data = request.get_json() if request.is_json else request.form
+            url = data.get('url', '')
+            logo = data.get('logo', '')
+            # Store temporarily and return an ID for later retrieval
+            detail_id = secrets.token_urlsafe(16)
+            detalhes_temp[detail_id] = {'url': url, 'logo': logo}
+            return jsonify({'success': True, 'detail_id': detail_id})
+        except Exception as e:
+            print(f"Erro ao processar detalhes: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'success': False, 'error': str(e)})
     else:
-        # GET - renderizar página
         return render_template('detalhes.html')
 
 @app.route('/api/extrair', methods=['POST'])
 def api_extrair():
     """Endpoint para extrair informações de um produto"""
-    
-    data = request.json
-    url = data.get('url', '')
-    
-    if not url:
-        return jsonify({"success": False, "error": "URL não fornecida"})
-    
-    if not url.startswith('http'):
-        return jsonify({"success": False, "error": "URL inválida. Deve começar com http:// ou https://"})
-    
     try:
+        data = request.json
+        url = data.get('url', '')
+        
+        if not url:
+            return jsonify({"success": False, "error": "URL não fornecida"})
+            
         # Detectar se é página de comprasparaguai
         if 'comprasparaguai.com.br' in url:
-            # Verificar se é página de ofertas (sem __) ou detalhes (com __)
-            if '__' in url:
-                # É página de detalhes - redirecionar para a página de detalhes
-                return jsonify({
-                    "success": True,
-                    "tipo": "redirect_detalhes",
-                    "url": url
-                })
-            else:
-                # É página de ofertas - extrair lista
-                async def extrair():
-                    extractor = ProductExtractor()
-                    await extractor.iniciar()
+            import re
+            # Padrão de URL de produto: termina com _ID (ex: _12345/ ou _12345)
+            is_product_url = bool(re.search(r'_\d+/?$', url))
+            
+            # Se for URL de busca ou categoria (não produto), extrair lista
+            if ('/busca/' in url or 'q=' in url) or not is_product_url:
+                print(f"🔍 URL de lista/busca recebida: {url}")
+                result = _extrair(url)
+                if result:
+                    session['ofertas'] = result.get('ofertas', [])
+                    session['sugestoes'] = result.get('sugestoes', [])
                     try:
-                        return await extractor.extrair_ofertas(url)
-                    finally:
-                        await extractor.fechar()
-                
-                resultado = run_async(extrair())
-                
-                if resultado:
+                        parsed = urllib.parse.urlparse(url)
+                        query = urllib.parse.parse_qs(parsed.query).get('q', [''])[0]
+                        if not query and not is_product_url:
+                            # Tentar extrair nome da categoria da URL
+                            parts = url.strip('/').split('/')
+                            if parts:
+                                query = parts[-1].replace('-', ' ').title()
+                        session['produto'] = query or 'Lista'
+                    except:
+                        session['produto'] = 'Lista'
                     return jsonify({
                         "success": True,
                         "tipo": "ofertas",
-                        "produto": resultado
+                        "ofertas": result.get('ofertas', []),
+                        "sugestoes": result.get('sugestoes', []),
+                        "url": url,
+                        "titulo": f"Resultados: {session['produto']}"
                     })
                 else:
+                    return jsonify({"success": False, "error": "Nenhuma oferta encontrada"})
+            else:
+                # Tratar como página de produto ou detalhe
+                print(f"🔍 URL de produto recebida: {url}")
+                result = _extrair_detalhes(url)
+                if result:
+                    # Calcular markup e conversão de moeda se houver preço
+                    preco_str = result.get('preco', '')
+                    if preco_str and preco_str != 'Consultar':
+                        try:
+                            import re
+                            preco_limpo = re.sub(r'[^\d,.]', '', preco_str)
+                            if ',' in preco_limpo and '.' in preco_limpo:
+                                preco_limpo = preco_limpo.replace('.', '').replace(',', '.')
+                            elif ',' in preco_limpo:
+                                preco_limpo = preco_limpo.replace(',', '.')
+                            
+                            preco_dolar = float(preco_limpo)
+                            cotacao_dolar = obter_cotacao_dolar()
+                            preco_reais = preco_dolar * cotacao_dolar
+                            taxa_bestguai = preco_reais * 0.27
+                            valor_total = preco_reais + taxa_bestguai
+                            
+                            result['calculos'] = {
+                                'preco_dolar': preco_dolar,
+                                'cotacao_dolar': cotacao_dolar,
+                                'preco_reais': preco_reais,
+                                'taxa_bestguai': taxa_bestguai,
+                                'valor_total': valor_total
+                            }
+                        except Exception as e:
+                            print(f"⚠️ Erro ao calcular markup: {e}")
+
                     return jsonify({
-                        "success": False,
-                        "error": "Não foi possível extrair ofertas"
+                        "success": True,
+                        "tipo": "detalhes",
+                        "produto": result,
+                        "url": url,
+                        "titulo": f"Detalhes do produto"
                     })
+                else:
+                    return jsonify({"success": False, "error": "Nenhuma oferta encontrada"})
         else:
-            # Extrair produto único
-            async def extrair():
-                extractor = ProductExtractor()
-                await extractor.iniciar()
-                try:
-                    return await extractor.extrair_produto(url)
-                finally:
-                    await extractor.fechar()
-            
-            produto = run_async(extrair())
-            
-            if produto:
-                return jsonify({
-                    "success": True,
-                    "tipo": "produto",
-                    "produto": produto
-                })
+            # URL de outro site ou termo de busca
+            if not url.startswith('http'):
+                 # É um termo de busca
+                 search_url = f"https://www.comprasparaguai.com.br/busca/?q={urllib.parse.quote(url)}"
+                 result = _extrair(search_url)
+                 if result:
+                    session['ofertas'] = result.get('ofertas', [])
+                    session['sugestoes'] = result.get('sugestoes', [])
+                    session['produto'] = url
+                    return jsonify({
+                        "success": True,
+                        "tipo": "ofertas",
+                        "ofertas": result.get('ofertas', []),
+                        "sugestoes": result.get('sugestoes', []),
+                        "url": search_url,
+                        "titulo": f"Resultados para '{url}'"
+                    })
+                 else:
+                    return jsonify({"success": False, "error": "Nenhuma oferta encontrada"})
             else:
                 return jsonify({
                     "success": False,
-                    "error": "Não foi possível extrair informações do produto"
+                    "error": "Por favor, use termos de busca (ex: iphone, ps5, perfume) em vez de colar links externos"
                 })
             
     except Exception as e:

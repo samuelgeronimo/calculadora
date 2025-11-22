@@ -1,0 +1,27 @@
+Acessando home...
+Tentando buscar 'ps5'...
+Aguardando navegação...
+URL Final: https://www.comprasparaguai.com.br/busca/?q=ps5
+HTML salvo em busca_result.html
+Seletor antigo (.promocao-produtos-item) encontrou: 20
+Procurando classes de elementos que parecem produtos...
+Candidato: {'cls': 'container-fuild', 'txt': 'Lembre-se: o Compras Paraguai '}
+Candidato: {'cls': 'categ-sidebar-absolute-js margin-categorias-menu container', 'txt': '\n    \n        \n            \n  '}
+Candidato: {'cls': 'categ-sidebar-absolute', 'txt': '\n        \n            \n       '}
+Candidato: {'cls': 'categ-sidebar-links', 'txt': '\n            \n                '}
+Candidato: {'cls': 'categorias--container container-flex column hidden-sm hidden-xs', 'txt': '\n                    \n        '}
+Candidato: {'cls': '', 'txt': '\n                        \n\n\n  '}
+Candidato: {'cls': 'categorias--container__item container-flex align-items-center', 'txt': '\n        \n            \n       '}
+Candidato: {'cls': 'box--categorias--container box--categorias--container-max container-flex', 'txt': '\n            \n                '}
+Candidato: {'cls': 'box--categorias-container__links__image  box--categorias--produto-modelo-black ', 'txt': '\n                \n\n           '}
+Candidato: {'cls': 'menu-departamento-item', 'txt': '\n                        \n    '}
+Candidato: {'cls': 'categorias--container__item container-flex align-items-center', 'txt': '\n        \n            \n       '}
+Candidato: {'cls': 'box--categorias--container box--categorias--container-max container-flex', 'txt': '\n            \n                '}
+Candidato: {'cls': 'box--categorias-container__links__image  box--categorias--produto-modelo-black ', 'txt': '\n                \n\n           '}
+Candidato: {'cls': 'menu-departamento-item', 'txt': '\n                        \n    '}
+Candidato: {'cls': 'categorias--container__item container-flex align-items-center', 'txt': '\n        \n            \n       '}
+Candidato: {'cls': 'box--categorias--container box--categorias--container-max container-flex', 'txt': '\n            \n                '}
+Candidato: {'cls': 'box--categorias-container__links__image  box--categorias--produto-modelo-black ', 'txt': '\n                \n\n           '}
+Candidato: {'cls': 'menu-departamento-item', 'txt': '\n                        \n    '}
+Candidato: {'cls': 'dolar-calculadora', 'txt': '\n                    \n        '}
+Candidato: {'cls': 'flex wrap-reverse', 'txt': '\n                        \n    '}

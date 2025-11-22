@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Extrator Inteligente de Produtos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #1a202c;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        
+        .header p {
+            opacity: 0.95;
+            font-size: 15px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .search-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .input-group { display: flex; gap: 12px; }
+        
+        input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f7fafc;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .message {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 16px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #ecfdf5;
+            color: #047857;
+            border: 2px solid #10b981;
+        }
+        
+        .message.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .produto { display: none; }
+        
+        .produto-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+        }
+        
+        .produto-header {
+            background: linear-gradient(to bottom, #f8fafc, white);
+            padding: 40px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .produto-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 30px;
+        }
+        
+        .produto-info-left { flex: 1; }
+        
+        .produto-marca {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .produto-titulo {
+            font-size: 32px;
+            color: #1a202c;
+            line-height: 1.3;
+            font-weight: 700;
+        }
+        
+        .produto-preco-box {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            min-width: 220px;
+        }
+        
+        .preco-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .produto-preco {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        
+        .produto-preco::before {
+            content: 'U$ ';
+            font-size: 24px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        
+        .btn-ver-produto {
+            display: inline-block;
+            background: white;
+            color: #059669;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+        
+        .btn-ver-produto:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .produto-fotos-section {
+            padding: 40px;
+            background: #fafbfc;
+        }
+        
+        .foto-principal {
+            margin-bottom: 24px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .foto-principal img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .fotos-galeria {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .foto-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+        
+        .foto-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .foto-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .produto-content { padding: 40px; }
+        
+        .content-section { margin-bottom: 40px; }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+        
+        .produto-descricao {
+            color: #4a5568;
+            line-height: 1.8;
+            font-size: 15px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .detalhes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        
+        .detalhe-item {
+            background: #f8fafc;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border-left: 3px solid #667eea;
+            transition: all 0.3s;
+        }
+        
+        .detalhe-item:hover {
+            background: #edf2f7;
+            transform: translateX(4px);
+        }
+        
+        .detalhe-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .detalhe-valor {
+            font-size: 15px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+        
+        .produto-link-section {
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            padding: 30px 40px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .produto-url-label {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .produto-url {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 12px 24px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            max-width: 600px;
+            word-break: break-all;
+            transition: all 0.3s;
+        }
+        
+        .produto-url:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+        
+        /* Estilos para lista de ofertas */
+        .ofertas-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .oferta-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+        
+        .oferta-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .oferta-thumb {
+            width: 150px;
+            height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f8fafc;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .oferta-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .oferta-numero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .oferta-info {
+            flex: 1;
+        }
+        
+        .oferta-produto {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .oferta-produto a {
+            color: #1a202c;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .oferta-produto a:hover {
+            color: #667eea;
+        }
+        
+        .oferta-loja-nome {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .oferta-loja {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+        
+        .oferta-preco {
+            font-size: 24px;
+            font-weight: 800;
+            color: #10b981;
+        }
+        
+        .oferta-loja-logo {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .oferta-loja-logo img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .btn-ordenar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-ordenar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-ordenar:active {
+            transform: translateY(0);
+        }
+        
+        .btn-ver-oferta {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 15px;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .btn-ver-oferta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .produto-top { flex-direction: column; }
+            .produto-preco-box { width: 100%; }
+            .produto-titulo { font-size: 24px; }
+            .detalhes-grid { grid-template-columns: 1fr; }
+            .oferta-card {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .oferta-thumb {
+                width: 120px;
+                height: 120px;
+            }
+            .oferta-produto {
+                font-size: 16px;
+            }
+            .oferta-info {
+                text-align: center;
+                width: 100%;
+                order: 2;
+            }
+            .oferta-loja-logo {
+                order: 3;
+                margin-top: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🔍 Extrator Inteligente de Produtos</h1>
+            <p>Análise completa de qualquer produto em segundos</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-box">
+            <label class="search-label">Cole o link do produto para análise completa</label>
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="https://exemplo.com/produto/12345" 
+                       value="https://nissei.com/br/catalog/product/view/id/1642537">
+                <button id="btnExtrair" onclick="extrairProduto()">Analisar Produto</button>
+            </div>
+            <div id="message" class="message"></div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Analisando produto e extraindo informações...</p>
+        </div>
+
+        <div id="produto" class="produto">
+            <div class="produto-card">
+                <div class="produto-header">
+                    <div class="produto-top">
+                        <div class="produto-info-left">
+                            <span id="produtoMarca" class="produto-marca" style="display: none;"></span>
+                            <h2 id="produtoTitulo" class="produto-titulo"></h2>
+                        </div>
+                        <div class="produto-preco-box">
+                            <div class="preco-label">Preço</div>
+                            <div id="produtoPreco" class="produto-preco"></div>
+                            <a id="btnVerProduto" href="#" target="_blank" class="btn-ver-produto">Ver Produto</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="produto-fotos-section">
+                    <div id="produtoFotos"></div>
+                </div>
+
+                <div class="produto-content">
+                    <div class="content-section">
+                        <h3 class="section-title">Descrição do Produto</h3>
+                        <div id="produtoDescricao" class="produto-descricao"></div>
+                    </div>
+
+                    <div class="content-section" id="detalhesSection" style="display: none;">
+                        <h3 class="section-title">Especificações Técnicas</h3>
+                        <div id="produtoDetalhes" class="detalhes-grid"></div>
+                    </div>
+                </div>
+
+                <div class="produto-link-section">
+                    <div class="produto-url-label">🔗 Link do Produto Original</div>
+                    <a id="produtoUrl" href="#" target="_blank" class="produto-url"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Restaurar busca anterior ao carregar a página (se voltou de detalhes)
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 Verificando cache de ofertas...');
+            const urlBusca = sessionStorage.getItem('ultima_url_busca');
+            const ofertasCache = sessionStorage.getItem('ofertas_cache');
+            
+            console.log('📋 URL salva:', urlBusca);
+            console.log('📦 Ofertas salvas:', ofertasCache ? 'SIM' : 'NÃO');
+            
+            if (urlBusca && ofertasCache) {
+                console.log('✅ Cache encontrado! Restaurando...');
+                // Restaurar URL no input
+                document.getElementById('urlInput').value = urlBusca;
+                
+                // Restaurar ofertas
+                try {
+                    const dadosOfertas = JSON.parse(ofertasCache);
+                    console.log('Dados ofertas:', dadosOfertas);
+                    
+                    if (dadosOfertas && dadosOfertas.ofertas && dadosOfertas.ofertas.length > 0) {
+                        console.log('🔄 Restaurando', dadosOfertas.ofertas.length, 'ofertas');
+                        // Restaurar usando a função mostrarOfertas
+                        mostrarOfertas(dadosOfertas);
+                        
+                        // Scroll suave até as ofertas
+                        setTimeout(() => {
+                            const ofertasDiv = document.getElementById('ofertas');
+                            if (ofertasDiv) {
+                                console.log('📍 Fazendo scroll até ofertas');
+                                ofertasDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 100);
+                    } else {
+                        console.log('⚠️ Dados de ofertas inválidos');
+                    }
+                } catch (e) {
+                    console.error('❌ Erro ao restaurar ofertas:', e);
+                }
+                
+                // NÃO limpar o sessionStorage aqui - só limpar quando fizer nova busca
+            } else {
+                console.log('ℹ️ Nenhum cache encontrado');
+            }
+        });
+
+        async function extrairProduto() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                mostrarMensagem('Por favor, cole um link válido', 'error');
+                return;
+            }
+
+            // Limpar cache de busca anterior ao fazer nova busca
+            sessionStorage.removeItem('ultima_url_busca');
+            sessionStorage.removeItem('ofertas_cache');
+
+            document.getElementById('produto').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('btnExtrair').disabled = true;
+
+            try {
+                const response = await fetch('/api/extrair', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (data.tipo === 'redirect_detalhes') {
+                        // Redirecionar para página de detalhes via POST
+                        navegarDetalhes(data.url, '');
+                        return;
+                    } else if (data.tipo === 'ofertas') {
+                        mostrarOfertas(data.produto);
+                    } else {
+                        mostrarProduto(data.produto);
+                    }
+                    mostrarMensagem('✅ Produto extraído com sucesso!', 'success');
+                } else {
+                    mostrarMensagem('❌ Erro: ' + data.error, 'error');
+                }
+            } catch (error) {
+                mostrarMensagem('❌ Erro de conexão: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('btnExtrair').disabled = false;
+            }
+        }
+
+        function mostrarOfertas(data) {
+            // Ocultar layout de produto único
+            document.getElementById('produto').style.display = 'none';
+            
+            // Armazenar ofertas globalmente para ordenação
+            window.ofertasData = data;
+            
+            renderizarOfertas(data.ofertas, data);
+        }
+
+        function renderizarOfertas(ofertas, data) {
+            // Criar HTML para ofertas
+            let html = `
+                <div class="produto-card">
+                    <div class="produto-header">
+                        <h2 class="produto-titulo">${data.titulo}</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 10px;">
+                            <p style="color: #64748b;">${ofertas.length} ofertas encontradas</p>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="ordenarPorPreco('menor')" class="btn-ordenar">💰 Menor Preço</button>
+                                <button onclick="ordenarPorPreco('maior')" class="btn-ordenar">💎 Maior Preço</button>
+                                <button onclick="ordenarPorPreco('original')" class="btn-ordenar">📋 Original</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="produto-content">
+                        <div class="ofertas-lista">
+            `;
+            
+            ofertas.forEach((oferta, i) => {
+                const imgSrc = oferta.imagem || 'https://via.placeholder.com/100x100?text=Sem+Imagem';
+                const imgLoja = oferta.imagem_loja || 'https://via.placeholder.com/60x60?text=Loja';
+                
+                html += `
+                    <div class="oferta-card">
+                        <div class="oferta-thumb">
+                            <img src="${imgSrc}" alt="${oferta.produto || 'Produto'}">
+                        </div>
+                        <div class="oferta-info">
+                            <h3 class="oferta-produto">
+                                ${oferta.link_produto ? `<a href="#" onclick="navegarDetalhes('${oferta.link_produto.replace(/'/g, "\\'")}', '${oferta.logo_loja ? oferta.logo_loja.replace(/'/g, "\\'") : ''}'); return false;" style="cursor: pointer;">${oferta.produto || 'Produto'}</a>` : oferta.produto || 'Produto'}
+                            </h3>
+                            <div class="oferta-preco">${oferta.preco || 'Consultar'}</div>
+                        </div>
+                        <div class="oferta-loja-logo">
+                            <img src="${imgLoja}" alt="${oferta.loja || 'Loja'}" title="${oferta.loja || 'Loja'}">
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                        </div>
+                    </div>
+                    <div class="produto-link-section">
+                        <div class="produto-url-label">🔗 Página Original</div>
+                        <a href="${data.url}" target="_blank" class="produto-url">${data.url}</a>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('produto').innerHTML = html;
+            document.getElementById('produto').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('produto').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+
+        function extrairValorPreco(precoStr) {
+            // Extrair valor numérico do preço (ex: "US$ 685,00" -> 685.00)
+            if (!precoStr || precoStr === 'Consultar') return 999999;
+            const match = precoStr.match(/[\d.,]+/);
+            if (!match) return 999999;
+            return parseFloat(match[0].replace(',', '.'));
+        }
+
+        function ordenarPorPreco(tipo) {
+            if (!window.ofertasData) return;
+            
+            let ofertas = [...window.ofertasData.ofertas];
+            
+            if (tipo === 'menor') {
+                ofertas.sort((a, b) => extrairValorPreco(a.preco) - extrairValorPreco(b.preco));
+            } else if (tipo === 'maior') {
+                ofertas.sort((a, b) => extrairValorPreco(b.preco) - extrairValorPreco(a.preco));
+            }
+            // Se for 'original', mantém a ordem original
+            
+            renderizarOfertas(ofertas, window.ofertasData);
+        }
+
+        function mostrarProduto(produto) {
+            document.getElementById('produtoTitulo').textContent = produto.titulo || 'Título não encontrado';
+            
+            if (produto.marca) {
+                document.getElementById('produtoMarca').textContent = produto.marca;
+                document.getElementById('produtoMarca').style.display = 'inline-block';
+            } else {
+                document.getElementById('produtoMarca').style.display = 'none';
+            }
+            
+            const precoTexto = produto.preco || 'Não disponível';
+            document.getElementById('produtoPreco').textContent = precoTexto.replace(/US?\$?\s*/i, '');
+            document.getElementById('btnVerProduto').href = produto.url;
+            document.getElementById('produtoDescricao').textContent = produto.descricao || 'Descrição não disponível';
+            
+            const detalhesSection = document.getElementById('detalhesSection');
+            const detalhesContainer = document.getElementById('produtoDetalhes');
+            
+            if (produto.detalhes && produto.detalhes.length > 0) {
+                detalhesSection.style.display = 'block';
+                let html = '';
+                produto.detalhes.forEach(detalhe => {
+                    html += `<div class="detalhe-item"><div class="detalhe-label">${detalhe.nome}</div><div class="detalhe-valor">${detalhe.valor}</div></div>`;
+                });
+                detalhesContainer.innerHTML = html;
+            } else {
+                detalhesSection.style.display = 'none';
+            }
+            
+            const fotosContainer = document.getElementById('produtoFotos');
+            fotosContainer.innerHTML = '';
+            
+            if (produto.fotos && produto.fotos.length > 0) {
+                const divPrincipal = document.createElement('div');
+                divPrincipal.className = 'foto-principal';
+                divPrincipal.innerHTML = `<img src="${produto.fotos[0]}" alt="Foto principal">`;
+                fotosContainer.appendChild(divPrincipal);
+                
+                if (produto.fotos.length > 1) {
+                    const galeriaDiv = document.createElement('div');
+                    galeriaDiv.className = 'fotos-galeria';
+                    produto.fotos.slice(1).forEach(foto => {
+                        const div = document.createElement('div');
+                        div.className = 'foto-item';
+                        div.innerHTML = `<img src="${foto}" alt="Foto do produto">`;
+                        div.onclick = () => window.open(foto, '_blank');
+                        galeriaDiv.appendChild(div);
+                    });
+                    fotosContainer.appendChild(galeriaDiv);
+                }
+            }
+            
+            const urlLink = document.getElementById('produtoUrl');
+            urlLink.href = produto.url;
+            urlLink.textContent = produto.url;
+            
+            document.getElementById('produto').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('produto').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+
+        function mostrarMensagem(texto, tipo) {
+            const msg = document.getElementById('message');
+            msg.textContent = texto;
+            msg.className = 'message ' + tipo;
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, 5000);
+        }
+
+        async function navegarDetalhes(url, logo) {
+            try {
+                console.log('🔍 navegarDetalhes chamado:');
+                console.log('   URL:', url);
+                console.log('   Logo:', logo);
+                
+                // Salvar estado atual da página (URL da busca e resultados)
+                const urlAtual = document.getElementById('urlInput').value;
+                if (urlAtual) {
+                    sessionStorage.setItem('ultima_url_busca', urlAtual);
+                }
+                
+                // Salvar ofertas atuais se existirem
+                if (window.ofertasData && window.ofertasData.ofertas) {
+                    sessionStorage.setItem('ofertas_cache', JSON.stringify(window.ofertasData));
+                }
+                
+                // Enviar dados via POST
+                const response = await fetch('/detalhes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, logo: logo || '' })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Armazenar detail_id no sessionStorage
+                    sessionStorage.setItem('detail_id', data.detail_id);
+                    if (logo) {
+                        sessionStorage.setItem('detail_logo', logo);
+                    }
+                    // Navegar para a página limpa
+                    window.location.href = '/detalhes';
+                }
+            } catch (error) {
+                console.error('Erro ao navegar:', error);
+                alert('Erro ao carregar detalhes');
+            }
+        }
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') extrairProduto();
+        });
+    </script>
+</body>
+</html>

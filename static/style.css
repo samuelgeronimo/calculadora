@@ -707,3 +707,45 @@ body {
         font-size: 1.4rem;
     }
 }
+
+/* Sugestões de Categorias */
+.sugestoes-container {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+    animation: fadeInUp 0.6s ease;
+}
+
+.sugestoes-container h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.sugestoes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sugestao-tag {
+    background: #e3f2fd;
+    color: #1565C0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid #bbdefb;
+}
+
+.sugestao-tag:hover {
+    background: #1565C0;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(21, 101, 192, 0.3);
+}
